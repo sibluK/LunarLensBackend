@@ -1,44 +1,40 @@
-var builder = WebApplication.CreateBuilder(args);
+using DotNetEnv;
+using FastEndpoints;
+using FastEndpoints.Security;
+using FastEndpoints.Swagger;
+using LunarLensBackend.Database;
+using Microsoft.EntityFrameworkCore;
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+var bld = WebApplication.CreateBuilder();
+Env.Load();
+bld.Services.AddFastEndpoints();
+bld.Services.SwaggerDocument();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+bld.Services.AddCors(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    options.AddPolicy("AllowLocalhost",
+        builder => builder.WithOrigins("http://localhost:5500", "http://127.0.0.1:5500")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials());
+});
 
-app.UseHttpsRedirection();
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
 
-var summaries = new[]
+bld.Services.AddAuthenticationJwtBearer(x => x.SigningKey = jwtSecret);
+bld.Services.AddAuthorization();
+
+bld.Services.AddDbContextFactory<Context>(options =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    options.UseNpgsql("User ID=postgres; Password=1324; Database=lunarlens; Server=localhost; Port=5432; Include Error Detail=true;");
+});
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+var app = bld.Build();
+
+app.UseFastEndpoints();
+app.UseCors("AllowLocalhost"); // Enable CORS with the specified policy
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseSwaggerGen();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
