@@ -1,22 +1,21 @@
 using System.Security.Claims;
 using FastEndpoints;
 using FastEndpoints.Security;
-using Microsoft.EntityFrameworkCore;
-using LunarLensBackend.Database;
+using LunarLensBackend.DTOs;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 
 namespace LunarLensBackend.Features.UserManagement;
 
 public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
 {
-    private readonly Context context;
-    private readonly IConfiguration configuration;
+    private readonly UserManager<IdentityUser> _userManager;
 
-    public LoginEndpoint(Context context, IConfiguration configuration)
+    public LoginEndpoint(UserManager<IdentityUser> userManager)
     {
-        this.context = context;
-        this.configuration = configuration;  // Inject IConfiguration to access environment variables
+        _userManager = userManager;
     }
 
     public override void Configure()
@@ -27,26 +26,36 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
 
     public override async Task<LoginResponse> ExecuteAsync(LoginRequest req, CancellationToken ct)
     {
-        var user = await context.Users.FirstOrDefaultAsync(x => x.Email.ToUpper() == req.Email.ToUpper()
-                                                                && x.Password == req.Password);
-        if (user == null)
-            ThrowError("Could not log in", StatusCodes.Status404NotFound);
+        var user = await _userManager.FindByEmailAsync(req.Email);
+        if (user == null || !await _userManager.CheckPasswordAsync(user, req.Password))
+        {
+            ThrowError("Invalid login credentials", StatusCodes.Status401Unauthorized);
+        }
 
-        // Access the JWT secret from environment variables via IConfiguration
+        // Retrieve user roles (optional but useful)
+        var roles = await _userManager.GetRolesAsync(user);
+        Console.WriteLine($"Roles for user {user.Email}: {string.Join(", ", roles)}");
+
+        // Generate JWT token
         var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
 
         var jwt = JwtBearer.CreateToken(options =>
         {
-            options.SigningKey = jwtSecret;  // Use the JWT secret from the environment
-            options.User.Claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()));
+            options.SigningKey = jwtSecret;
+            options.User.Claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
             options.User.Claims.Add(new Claim(JwtRegisteredClaimNames.Name, user.Email));
-            //options.User.Roles.Add(user.Role);
+
+            // Add roles as claims
+            foreach (var role in roles)
+            {
+                
+                options.User.Claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
             options.ExpireAt = DateTime.UtcNow.AddDays(7);
         });
-        
-        return new LoginResponse(jwt, user.Email);
+
+        // Return the login response with JWT and user roles
+        return new LoginResponse(jwt, user.Email, roles.ToArray());
     }
 }
-
-public record LoginRequest(string Email, string Password);
-public record LoginResponse(string Jwt, string Email);
