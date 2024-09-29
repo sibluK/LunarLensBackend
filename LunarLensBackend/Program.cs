@@ -1,22 +1,87 @@
+using System.Security.Claims;
+using System.Text;
 using DotNetEnv;
 using FastEndpoints;
-using FastEndpoints.Security;
 using FastEndpoints.Swagger;
 using LunarLensBackend.Database;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 Env.Load();
 var bld = WebApplication.CreateBuilder();
-var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
-Console.WriteLine("JWT_SECRET: " + jwtSecret);
 
-bld.Services.AddFastEndpoints();
-bld.Services.SwaggerDocument();
-bld.Services.AddAuthenticationJwtBearer(x => x.SigningKey = jwtSecret);
-bld.Services.AddAuthorization();
-bld.Logging.AddConsole(); // Add this to enable console logging
+bld.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = false,
+        ValidateIssuerSigningKey = false,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET"))),
+        ValidIssuer = bld.Configuration["Jwt:Issuer"],
+        ValidAudience = bld.Configuration["Jwt:Audience"],
+        RoleClaimType = ClaimTypes.Role
+    };
 
+    /*// Override challenge behavior to prevent redirection to /Account/Login
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = context =>
+        {
+            context.HandleResponse(); // Prevents redirect
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+    };*/
+});
+
+bld.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 3;
+})
+.AddEntityFrameworkStores<Context>()
+.AddDefaultTokenProviders();
+
+// Disable cookie authentication redirects
+bld.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = PathString.Empty;
+    options.AccessDeniedPath = PathString.Empty;
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
+});
+
+bld.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Admin");
+    })
+    .AddPolicy("EditorOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Editor");
+    });
+
+bld.Services.AddFastEndpoints().SwaggerDocument();
 
 bld.Services.AddCors(options =>
 {
@@ -27,74 +92,28 @@ bld.Services.AddCors(options =>
             .AllowCredentials());
 });
 
-bld.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-    {
-        options.Password.RequireDigit = true;
-        options.Password.RequiredLength = 3;
-    })
-    .AddEntityFrameworkStores<Context>()
-    .AddDefaultTokenProviders();
-
 bld.Services.AddDbContextFactory<Context>(options =>
 {
     options.UseNpgsql("User ID=postgres; Password=1324; Database=lunarlens; Server=localhost; Port=5432; Include Error Detail=true;");
 });
 
-bld.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("EditorOnly", policy => policy.RequireRole("Editor"));
-});
+bld.Logging.AddConsole();
 
 var app = bld.Build();
 
-await SeedRolesAndAdminUserAsync(app.Services);
+await RoleSeeder.SeedRolesAndAdminUserAsync(app.Services);
 
-app.UseCors("AllowLocalhost"); 
+app.UseCors("AllowLocalhost");
+
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"Request: {context.Request.Path}");
+    await next.Invoke();
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseFastEndpoints();
 app.UseSwaggerGen();
 
-
-app.Use(async (context, next) =>
-{
-    // Log request details
-    Console.WriteLine($"Request: {context.Request.Path}");
-    await next.Invoke();
-});
-
 app.Run();
-
-async Task SeedRolesAndAdminUserAsync(IServiceProvider serviceProvider)
-{
-    using var scope = serviceProvider.CreateScope();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-
-    // Define roles
-    var roles = new[] { "Admin", "Editor", "BasicUser" };
-
-    // Create roles if they don't exist
-    foreach (var role in roles)
-    {
-        if (!await roleManager.RoleExistsAsync(role))
-        {
-            await roleManager.CreateAsync(new IdentityRole(role));
-        }
-    }
-
-    // Optionally, create a default admin user
-    var adminEmail = "admin@spacetheme.com";
-    var adminPassword = "Admin@1234";
-    var adminUser = await userManager.FindByEmailAsync(adminEmail);
-    if (adminUser == null)
-    {
-        adminUser = new IdentityUser { UserName = adminEmail, Email = adminEmail };
-        var result = await userManager.CreateAsync(adminUser, adminPassword);
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(adminUser, "Admin");
-        }
-    }
-}

@@ -8,12 +8,10 @@ namespace LunarLensBackend.Features.UserManagement;
 public class RegisterEndpoint : Endpoint<RegisterRequest, RegisterResponse>
 {
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
     
-    public RegisterEndpoint(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+    public RegisterEndpoint(UserManager<IdentityUser> userManager)
     {
         _userManager = userManager;
-        _roleManager = roleManager;
     }
     
     public override void Configure()
@@ -29,11 +27,6 @@ public class RegisterEndpoint : Endpoint<RegisterRequest, RegisterResponse>
 
         if (result.Succeeded)
         {
-            if (!await _roleManager.RoleExistsAsync("BasicUser"))
-            {
-                await _roleManager.CreateAsync(new IdentityRole("BasicUser"));
-            }
-
             await _userManager.AddToRoleAsync(user, "BasicUser");
 
             return new RegisterResponse
@@ -43,14 +36,13 @@ public class RegisterEndpoint : Endpoint<RegisterRequest, RegisterResponse>
             };
         }
         
-        // Collect error messages to log or return
         var errorMessages = result.Errors.Select(e => e.Description).ToList();
     
         var errorResponse = new RegisterResponse
         {
-            Id = Guid.Empty, // Indicate failure
+            Id = Guid.Empty, 
             Email = req.Email,
-            Errors = errorMessages // Make sure to have an Errors property in RegisterResponse to hold these
+            Errors = errorMessages
         };
         
         await SendAsync(errorResponse, 400);
