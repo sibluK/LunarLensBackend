@@ -22,13 +22,13 @@ bld.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = false,
-        ValidateIssuerSigningKey = false,
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET"))),
-        ValidIssuer = bld.Configuration["Jwt:Issuer"],
-        ValidAudience = bld.Configuration["Jwt:Audience"],
+        ValidIssuer = bld.Configuration.GetSection("Jwt:Issuer").Value,
+        ValidAudience = bld.Configuration.GetSection("Jwt:Audience").Value,
         RoleClaimType = ClaimTypes.Role
     };
 
@@ -69,18 +69,6 @@ bld.Services.ConfigureApplicationCookie(options =>
     };
 });
 
-bld.Services.AddAuthorizationBuilder()
-    .AddPolicy("AdminOnly", policy =>
-    {
-        policy.RequireAuthenticatedUser();
-        policy.RequireRole("Admin");
-    })
-    .AddPolicy("EditorOnly", policy =>
-    {
-        policy.RequireAuthenticatedUser();
-        policy.RequireRole("Editor");
-    });
-
 bld.Services.AddFastEndpoints().SwaggerDocument();
 
 bld.Services.AddCors(options =>
@@ -98,6 +86,18 @@ bld.Services.AddDbContextFactory<Context>(options =>
 });
 
 bld.Logging.AddConsole();
+
+bld.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Admin");
+    })
+    .AddPolicy("EditorOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Editor");
+    });
 
 var app = bld.Build();
 

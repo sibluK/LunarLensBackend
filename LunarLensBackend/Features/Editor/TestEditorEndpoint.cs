@@ -12,7 +12,7 @@ public class TestEditorEndpoint : Endpoint<EmptyRequest>
 
     public override async Task HandleAsync(EmptyRequest req, CancellationToken ct)
     {
-        Console.WriteLine("Admin endpoint accessed successfully!");
+        Console.WriteLine("Editor endpoint accessed successfully!");
         await SendOkAsync("Access granted");
     }
 }

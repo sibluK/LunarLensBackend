@@ -1,12 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Reflection.Metadata;
 using System.Security.Claims;
 using System.Text;
 using FastEndpoints;
-using FastEndpoints.Security;
 using LunarLensBackend.DTOs;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.IdentityModel.Tokens;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
@@ -15,10 +12,12 @@ namespace LunarLensBackend.Features.UserManagement;
 public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
 {
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly IConfiguration _configuration;
 
-    public LoginEndpoint(UserManager<IdentityUser> userManager)
+    public LoginEndpoint(UserManager<IdentityUser> userManager, IConfiguration configuration)
     {
         _userManager = userManager;
+        _configuration = configuration;
     }
 
     public override void Configure()
@@ -57,8 +56,8 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
 
         // Create the token
         var token = new JwtSecurityToken(
-            //issuer: "http://localhost:5131",
-            //audience: "http://localhost:5131",
+            issuer: _configuration.GetSection("Jwt:Issuer").Value,
+            audience: _configuration.GetSection("Jwt:Audience").Value,
             claims: claims,
             expires: DateTime.UtcNow.AddDays(7),
             signingCredentials: creds
@@ -66,8 +65,6 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
         
         var jwt = new JwtSecurityTokenHandler().WriteToken(token);
         
-        
         return new LoginResponse(jwt, user.Email, roles.ToArray());
     }
-
 }
