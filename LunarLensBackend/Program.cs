@@ -90,7 +90,7 @@ bld.Services.AddIdentityApiEndpoints<IdentityUser>()
 bld.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminOnly", policy =>
     {
-        //policy.RequireAuthenticatedUser();
+        policy.RequireAuthenticatedUser();
         policy.RequireRole("Admin");
     })
     .AddPolicy("EditorOnly", policy =>
