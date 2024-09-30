@@ -7,7 +7,6 @@ public class TestEditorEndpoint : Endpoint<EmptyRequest>
     public override void Configure()
     {
         Get("/editor/test");
-        AuthSchemes("JwtBearer", "AzureAdBearer");
         Policies("EditorOnly");
     }
 

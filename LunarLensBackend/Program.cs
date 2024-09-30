@@ -5,6 +5,7 @@ using FastEndpoints;
 using FastEndpoints.Swagger;
 using LunarLensBackend.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
@@ -18,7 +19,7 @@ bld.Services.AddAuthentication(options =>
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
-    .AddJwtBearer("JwtBearer",options =>
+    .AddJwtBearer("JwtBearer", options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -32,48 +33,41 @@ bld.Services.AddAuthentication(options =>
             ValidAudience = bld.Configuration.GetSection("Jwt:Audience").Value,
             RoleClaimType = ClaimTypes.Role
         };
-
-
-        /*// Override challenge behavior to prevent redirection to /Account/Login
-        options.Events = new JwtBearerEvents
+    })
+    .AddOpenIdConnect("Microsoft", options =>
+    {
+        options.Authority = $"https://login.microsoftonline.com/{bld.Configuration.GetSection("AzureAd:TenantId").Value}/v2.0";
+        options.ClientId = bld.Configuration.GetSection("AzureAd:ClientId").Value;
+        options.ClientSecret = bld.Configuration.GetSection("AzureAd:ClientSecret").Value;
+        options.ResponseType = "code"; 
+        options.SaveTokens = true;
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            OnChallenge = context =>
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidIssuer = bld.Configuration.GetSection("Jwt:Issuer").Value,
+            ValidAudience = bld.Configuration.GetSection("Jwt:Audience").Value,
+            RoleClaimType = ClaimTypes.Role,
+        };
+        options.Events = new OpenIdConnectEvents
+        {
+            OnRedirectToIdentityProvider = context =>
             {
-                context.HandleResponse(); // Prevents redirect
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.StatusCode = 401;
+                context.HandleResponse();
                 return Task.CompletedTask;
             }
-        };*/
-    }).AddMicrosoftIdentityWebApi(bld.Configuration.GetSection("AzureAd"), "AzureAdBearer");
-
-/*bld.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<Context>()
-    .AddDefaultTokenProviders();*/
-
-/*// Disable cookie authentication redirects
-bld.Services.ConfigureApplicationCookie(options =>
-{
-    options.LoginPath = PathString.Empty;
-    options.AccessDeniedPath = PathString.Empty;
-    options.Events.OnRedirectToLogin = context =>
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        return Task.CompletedTask;
-    };
-    options.Events.OnRedirectToAccessDenied = context =>
-    {
-        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-        return Task.CompletedTask;
-    };
-});*/
+        };
+    });
+    //.AddMicrosoftIdentityWebApi(bld.Configuration.GetSection("AzureAd"), "AzureAdBearer");
 
 bld.Services.AddFastEndpoints().SwaggerDocument();
 
 bld.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost",
-        builder => builder.WithOrigins("http://localhost:5500", "http://127.0.0.1:5500")
+        builder => builder.WithOrigins("http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:5131")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
@@ -95,11 +89,19 @@ bld.Services.AddAuthorizationBuilder()
     {
         policy.RequireAuthenticatedUser();
         policy.RequireRole("Admin");
+        policy.AddAuthenticationSchemes("JwtBearer", "Microsoft");
     })
     .AddPolicy("EditorOnly", policy =>
     {
         policy.RequireAuthenticatedUser();
         policy.RequireRole("Editor");
+        policy.AddAuthenticationSchemes("JwtBearer", "Microsoft");
+    })
+    .AddPolicy("BasicUserOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("BasicUser");
+        policy.AddAuthenticationSchemes("JwtBearer", "Microsoft");
     });
 
 var app = bld.Build();
