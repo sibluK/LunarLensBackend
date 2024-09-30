@@ -7,48 +7,51 @@ using LunarLensBackend.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Tokens;
 
 Env.Load();
 var bld = WebApplication.CreateBuilder();
 
 bld.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET"))),
-        ValidIssuer = bld.Configuration.GetSection("Jwt:Issuer").Value,
-        ValidAudience = bld.Configuration.GetSection("Jwt:Audience").Value,
-        RoleClaimType = ClaimTypes.Role
-    };
-
-    /*// Override challenge behavior to prevent redirection to /Account/Login
-    options.Events = new JwtBearerEvents
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer("JwtBearer",options =>
     {
-        OnChallenge = context =>
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            context.HandleResponse(); // Prevents redirect
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return Task.CompletedTask;
-        }
-    };*/
-});
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey =
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET"))),
+            ValidIssuer = bld.Configuration.GetSection("Jwt:Issuer").Value,
+            ValidAudience = bld.Configuration.GetSection("Jwt:Audience").Value,
+            RoleClaimType = ClaimTypes.Role
+        };
+
+
+        /*// Override challenge behavior to prevent redirection to /Account/Login
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                context.HandleResponse(); // Prevents redirect
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            }
+        };*/
+    }).AddMicrosoftIdentityWebApi(bld.Configuration.GetSection("AzureAd"), "AzureAdBearer");
 
 /*bld.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<Context>()
     .AddDefaultTokenProviders();*/
 
-// Disable cookie authentication redirects
+/*// Disable cookie authentication redirects
 bld.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = PathString.Empty;
@@ -63,7 +66,7 @@ bld.Services.ConfigureApplicationCookie(options =>
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
         return Task.CompletedTask;
     };
-});
+});*/
 
 bld.Services.AddFastEndpoints().SwaggerDocument();
 
