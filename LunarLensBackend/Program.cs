@@ -15,7 +15,6 @@ var bld = WebApplication.CreateBuilder();
 bld.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
@@ -44,13 +43,10 @@ bld.Services.AddAuthentication(options =>
     };*/
 });
 
-bld.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-{
-    options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 3;
-})
-.AddEntityFrameworkStores<Context>()
-.AddDefaultTokenProviders();
+/*bld.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<Context>()
+    .AddDefaultTokenProviders();*/
 
 // Disable cookie authentication redirects
 bld.Services.ConfigureApplicationCookie(options =>
@@ -87,10 +83,14 @@ bld.Services.AddDbContextFactory<Context>(options =>
 
 bld.Logging.AddConsole();
 
+bld.Services.AddIdentityApiEndpoints<IdentityUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<Context>();
+
 bld.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminOnly", policy =>
     {
-        policy.RequireAuthenticatedUser();
+        //policy.RequireAuthenticatedUser();
         policy.RequireRole("Admin");
     })
     .AddPolicy("EditorOnly", policy =>
