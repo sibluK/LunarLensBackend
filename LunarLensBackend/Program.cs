@@ -1,3 +1,4 @@
+using System.Security.Authentication.ExtendedProtection;
 using System.Security.Claims;
 using System.Text;
 using DotNetEnv;
@@ -14,13 +15,14 @@ using Microsoft.IdentityModel.Tokens;
 Env.Load();
 var bld = WebApplication.CreateBuilder();
 
+
 bld.Services.AddAuthentication(options =>
     {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer("JwtBearer", options =>
     {
+        options.Authority = $"https://login.microsoftonline.com/{bld.Configuration["AzureAd:TenantId"]}/v2.0";
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -29,12 +31,21 @@ bld.Services.AddAuthentication(options =>
             ValidateIssuerSigningKey = true,
             IssuerSigningKey =
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET"))),
-            ValidIssuer = bld.Configuration.GetSection("Jwt:Issuer").Value,
-            ValidAudience = bld.Configuration.GetSection("Jwt:Audience").Value,
+            ValidIssuers = new[]
+            {
+                $"https://login.microsoftonline.com/{bld.Configuration.GetSection("AzureAd:TenantId").Value}/v2.0",
+                "http://localhost:5131"
+            },
+            ValidAudiences = new[]
+            {
+                bld.Configuration.GetSection("Jwt:Audience").Value,
+                bld.Configuration.GetSection("AzureAd:ClientId").Value
+            },
             RoleClaimType = ClaimTypes.Role
         };
     })
-    .AddOpenIdConnect("Microsoft", options =>
+    .AddMicrosoftIdentityWebApi(bld.Configuration.GetSection("AzureAd"));
+    /*.AddOpenIdConnect("Microsoft", options =>
     {
         options.Authority = $"https://login.microsoftonline.com/{bld.Configuration.GetSection("AzureAd:TenantId").Value}/v2.0";
         options.ClientId = bld.Configuration.GetSection("AzureAd:ClientId").Value;
@@ -46,9 +57,9 @@ bld.Services.AddAuthentication(options =>
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
-            ValidIssuer = bld.Configuration.GetSection("Jwt:Issuer").Value,
-            ValidAudience = bld.Configuration.GetSection("Jwt:Audience").Value,
-            RoleClaimType = ClaimTypes.Role,
+            ValidIssuer = $"https://login.microsoftonline.com/{bld.Configuration.GetSection("AzureAd:TenantId").Value}/v2.0",
+            ValidAudience = bld.Configuration.GetSection("AzureAd:ClientId").Value, 
+            /*RoleClaimType = ClaimTypes.Role,#1#
         };
         options.Events = new OpenIdConnectEvents
         {
@@ -59,8 +70,7 @@ bld.Services.AddAuthentication(options =>
                 return Task.CompletedTask;
             }
         };
-    });
-    //.AddMicrosoftIdentityWebApi(bld.Configuration.GetSection("AzureAd"), "AzureAdBearer");
+    });*/
 
 bld.Services.AddFastEndpoints().SwaggerDocument();
 
@@ -89,19 +99,19 @@ bld.Services.AddAuthorizationBuilder()
     {
         policy.RequireAuthenticatedUser();
         policy.RequireRole("Admin");
-        policy.AddAuthenticationSchemes("JwtBearer", "Microsoft");
+        policy.AddAuthenticationSchemes("JwtBearer");
     })
     .AddPolicy("EditorOnly", policy =>
     {
         policy.RequireAuthenticatedUser();
         policy.RequireRole("Editor");
-        policy.AddAuthenticationSchemes("JwtBearer", "Microsoft");
+        policy.AddAuthenticationSchemes("JwtBearer");
     })
     .AddPolicy("BasicUserOnly", policy =>
     {
         policy.RequireAuthenticatedUser();
         policy.RequireRole("BasicUser");
-        policy.AddAuthenticationSchemes("JwtBearer", "Microsoft");
+        policy.AddAuthenticationSchemes("JwtBearer");
     });
 
 var app = bld.Build();

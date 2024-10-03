@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace LunarLensBackend.Features.Admin;
 
+
 public class TestAdminEndpoint : Endpoint<EmptyRequest>
 {
     public override void Configure()
