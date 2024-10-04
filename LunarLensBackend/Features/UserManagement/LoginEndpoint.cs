@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using FastEndpoints;
+using LunarLensBackend.Database;
 using LunarLensBackend.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -11,10 +12,10 @@ namespace LunarLensBackend.Features.UserManagement;
 
 public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
 
-    public LoginEndpoint(UserManager<IdentityUser> userManager, IConfiguration configuration)
+    public LoginEndpoint(UserManager<ApplicationUser> userManager, IConfiguration configuration)
     {
         _userManager = userManager;
         _configuration = configuration;
@@ -35,7 +36,10 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
         }
     
         var roles = await _userManager.GetRolesAsync(user);
+        Console.WriteLine("-------------------------------------------------------------------");
         Console.WriteLine($"Roles for user {user.Email}: {string.Join(", ", roles)}");
+        Console.WriteLine("-------------------------------------------------------------------");
+
 
         // Create the claims for the JWT
         var claims = new List<Claim>

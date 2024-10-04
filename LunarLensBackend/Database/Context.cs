@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LunarLensBackend.Database;
 
-public class Context : IdentityDbContext<IdentityUser, IdentityRole, string>
+public class Context : IdentityDbContext<ApplicationUser, IdentityRole, string>
 {
     public Context(DbContextOptions<Context> options) : base(options) { }
 

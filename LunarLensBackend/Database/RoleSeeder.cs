@@ -8,7 +8,7 @@ public static class RoleSeeder
     {
         using var scope = serviceProvider.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         var roles = new[] { "Admin", "Editor", "BasicUser" };
 
@@ -22,12 +22,18 @@ public static class RoleSeeder
         }
 
         // Seed admin user
-        var adminEmail = "admin@spacetheme.com";
+        var adminEmail = "admin@lunarlens.com";
         var adminPassword = "Admin@1234";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
         if (adminUser == null)
         {
-            adminUser = new IdentityUser { UserName = adminEmail, Email = adminEmail };
+            adminUser = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                MicrosoftId = null 
+            };
+
             var result = await userManager.CreateAsync(adminUser, adminPassword);
             if (result.Succeeded)
             {

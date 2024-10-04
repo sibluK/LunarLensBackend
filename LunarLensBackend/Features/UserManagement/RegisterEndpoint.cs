@@ -1,4 +1,5 @@
 using FastEndpoints;
+using LunarLensBackend.Database;
 using LunarLensBackend.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
@@ -7,9 +8,9 @@ namespace LunarLensBackend.Features.UserManagement;
 
 public class RegisterEndpoint : Endpoint<RegisterRequest, RegisterResponse>
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     
-    public RegisterEndpoint(UserManager<IdentityUser> userManager)
+    public RegisterEndpoint(UserManager<ApplicationUser> userManager)
     {
         _userManager = userManager;
     }
@@ -22,7 +23,7 @@ public class RegisterEndpoint : Endpoint<RegisterRequest, RegisterResponse>
 
     public override async Task<RegisterResponse> ExecuteAsync(RegisterRequest req, CancellationToken ct)
     {
-        var user = new IdentityUser { UserName = req.Email, Email = req.Email };
+        var user = new ApplicationUser() { UserName = req.Email, Email = req.Email };
         var result = await _userManager.CreateAsync(user, req.Password);
 
         if (result.Succeeded)

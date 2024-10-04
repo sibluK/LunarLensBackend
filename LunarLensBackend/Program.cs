@@ -10,11 +10,11 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
 Env.Load();
 var bld = WebApplication.CreateBuilder();
-
 
 bld.Services.AddAuthentication(options =>
     {
@@ -45,6 +45,45 @@ bld.Services.AddAuthentication(options =>
         };
     })
     .AddMicrosoftIdentityWebApi(bld.Configuration.GetSection("AzureAd"));
+
+bld.Services.Configure<JwtBearerOptions>("JwtBearer", options =>
+{
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var userId = context.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var issuer = context.Principal.FindFirst(JwtRegisteredClaimNames.Iss)?.Value;
+
+            var dbContext = context.HttpContext.RequestServices.GetRequiredService<Context>();
+            
+            if (issuer != null && issuer.Contains("login.microsoftonline.com"))
+            {
+                var user = await dbContext.Users.FirstOrDefaultAsync(u => u.MicrosoftId == userId);
+
+                if (user == null)
+                {
+                    user = new ApplicationUser()
+                    {
+                        MicrosoftId = userId,
+                        UserName = context.Principal.FindFirst("preferred_username")?.Value,
+                        Email = context.Principal.FindFirst("preferred_username")?.Value
+                    };
+
+                    await dbContext.Users.AddAsync(user);
+                    await dbContext.SaveChangesAsync();
+                    
+                    var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+                    await userManager.AddToRoleAsync(user, "BasicUser");
+
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+            await Task.CompletedTask;
+        }
+    };
+});
+
     /*.AddOpenIdConnect("Microsoft", options =>
     {
         options.Authority = $"https://login.microsoftonline.com/{bld.Configuration.GetSection("AzureAd:TenantId").Value}/v2.0";
@@ -72,7 +111,7 @@ bld.Services.AddAuthentication(options =>
         };
     });*/
 
-bld.Services.AddFastEndpoints().SwaggerDocument();
+bld.Services.AddFastEndpoints().SwaggerDocument().AddResponseCaching();
 
 bld.Services.AddCors(options =>
 {
@@ -90,7 +129,7 @@ bld.Services.AddDbContextFactory<Context>(options =>
 
 bld.Logging.AddConsole();
 
-bld.Services.AddIdentityApiEndpoints<IdentityUser>()
+bld.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<Context>();
 
@@ -128,7 +167,8 @@ app.Use(async (context, next) =>
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseFastEndpoints();
+/*app.MapIdentityApi<ApplicationUser>();*/
+app.UseResponseCaching().UseFastEndpoints();
 app.UseSwaggerGen();
 
 app.Run();
