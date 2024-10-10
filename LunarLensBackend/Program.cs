@@ -5,6 +5,7 @@ using DotNetEnv;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using LunarLensBackend.Database;
+using LunarLensBackend.Utility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
@@ -152,6 +153,9 @@ bld.Services.AddAuthorizationBuilder()
         policy.RequireRole("BasicUser");
         policy.AddAuthenticationSchemes("JwtBearer");
     });
+
+
+bld.Services.AddScoped<TokenGeneration>();
 
 var app = bld.Build();
 

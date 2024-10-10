@@ -2,15 +2,14 @@ namespace LunarLensBackend.DTOs;
 
 public class LoginResponse
 {
-    public string Jwt { get; set; }  
-    public string Email { get; set; } 
-    public string[] Roles { get; set; } 
-    
+    public string AccessToken { get; set; }  
+    public string RefreshToken { get; set; }
+    public DateTime Expires { get; set; }
 
-    public LoginResponse(string jwt, string email, string[] roles = null)
+    public LoginResponse(string access, string refresh, DateTime expires)
     {
-        Jwt = jwt;
-        Email = email;
-        Roles = roles ?? Array.Empty<string>(); 
+        AccessToken = access;
+        RefreshToken = refresh;
+        Expires = expires;
     }
 }

@@ -11,8 +11,7 @@ public static class RoleSeeder
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         var roles = new[] { "Admin", "Editor", "BasicUser" };
-
-        // Seed roles
+        
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -20,8 +19,7 @@ public static class RoleSeeder
                 await roleManager.CreateAsync(new IdentityRole(role));
             }
         }
-
-        // Seed admin user
+        
         var adminEmail = "admin@lunarlens.com";
         var adminPassword = "Admin@1234";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);

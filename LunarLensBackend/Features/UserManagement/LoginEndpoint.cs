@@ -1,24 +1,20 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using FastEndpoints;
 using LunarLensBackend.Database;
 using LunarLensBackend.DTOs;
+using LunarLensBackend.Utility;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
-using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 namespace LunarLensBackend.Features.UserManagement;
 
 public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IConfiguration _configuration;
+    private readonly TokenGeneration _tokenGeneration;
 
-    public LoginEndpoint(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    public LoginEndpoint(UserManager<ApplicationUser> userManager, TokenGeneration tokenGeneration)
     {
         _userManager = userManager;
-        _configuration = configuration;
+        _tokenGeneration = tokenGeneration;
     }
 
     public override void Configure()
@@ -34,41 +30,10 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
         {
             ThrowError("Invalid login credentials", StatusCodes.Status401Unauthorized);
         }
-    
-        var roles = await _userManager.GetRolesAsync(user);
-        Console.WriteLine("-------------------------------------------------------------------");
-        Console.WriteLine($"Roles for user {user.Email}: {string.Join(", ", roles)}");
-        Console.WriteLine("-------------------------------------------------------------------");
-
-
-        // Create the claims for the JWT
-        var claims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-        };
-
-        // Add role claims
-        foreach (var role in roles)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
-
-        // Generate the signing credentials
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        // Create the token
-        var token = new JwtSecurityToken(
-            issuer: _configuration.GetSection("Jwt:Issuer").Value,
-            audience: _configuration.GetSection("Jwt:Audience").Value,
-            claims: claims,
-            expires: DateTime.UtcNow.AddDays(7),
-            signingCredentials: creds
-        );
         
-        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+        var accessToken = await _tokenGeneration.GenerateAccessTokenAsync(user);
+        var refreshToken = await _tokenGeneration.GenerateRefreshTokenAsync(user); 
         
-        return new LoginResponse(jwt, user.Email, roles.ToArray());
+        return new LoginResponse(accessToken, refreshToken, DateTime.UtcNow.AddMinutes(15));
     }
 }
