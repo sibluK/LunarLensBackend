@@ -1,3 +1,4 @@
+using LunarLensBackend.Entities;
 using Microsoft.AspNetCore.Identity;
 
 namespace LunarLensBackend.Database;

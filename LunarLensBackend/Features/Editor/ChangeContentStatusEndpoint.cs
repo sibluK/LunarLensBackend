@@ -31,28 +31,51 @@ public class ChangeContentStatusEndpoint : Endpoint<ChangeContentStatusRequest>
             return;
         }
 
-        Console.WriteLine("------------------------------------------------------");
-        Console.WriteLine($"Status: {req.Status}");
-        Console.WriteLine($"Id: {req.ContentId}");
-        Console.WriteLine($"Type: {req.Type}");
-        Console.WriteLine("------------------------------------------------------");
-
         try
         {
-            /*ContentBase? content = await _context.ContentBases
-                .Where(c => c.Id == req.ContentId && c.Type == req.Type)
-                .FirstOrDefaultAsync();
-
-            if (content == null)
+            switch (req.Type)
             {
-                await SendAsync(new { Message = $"{req.Type} content not found. Check id." }, StatusCodes.Status400BadRequest);
-                return;
+                case ContentType.News:
+                    var newsStory = _context.News.FirstOrDefault(news => news.Id == req.ContentId);
+                    
+                    if (newsStory == null)
+                    {
+                        await SendAsync(new { Message = "News story not found. Check id." }, StatusCodes.Status400BadRequest);
+                        return;
+                    }
+
+                    newsStory.Status = req.Status;
+                    await _context.SaveChangesAsync();
+                    break;
+                
+                case ContentType.Article:
+                    var articleStory = _context.Articles.FirstOrDefault(article => article.Id == req.ContentId);
+                    
+                    if (articleStory == null)
+                    {
+                        await SendAsync(new { Message = "Article not found. Check id." }, StatusCodes.Status400BadRequest);
+                        return;
+                    }
+
+                    articleStory.Status = req.Status;
+                    await _context.SaveChangesAsync();
+                    break;
+
+                case ContentType.Event:
+                    var eventStory = _context.Events.FirstOrDefault(e => e.Id == req.ContentId);
+                    
+                    if (eventStory == null)
+                    {
+                        await SendAsync(new { Message = "Event not found. Check id." }, StatusCodes.Status400BadRequest);
+                        return;
+                    }
+
+                    eventStory.Status = req.Status;
+                    await _context.SaveChangesAsync();
+                    break;
             }
-
-            content.Status = req.Status;
-            await _context.SaveChangesAsync();
-
-            await SendOkAsync("Content status changed successfully!");*/
+            
+            await SendOkAsync("Content status changed successfully!");
         }
         catch (Exception e)
         {

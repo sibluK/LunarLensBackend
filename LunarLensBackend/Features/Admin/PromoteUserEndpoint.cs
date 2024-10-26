@@ -9,10 +9,12 @@ namespace LunarLensBackend.Features.Admin;
 public class PromoteUserEndpoint : Endpoint<PromoteUserRequest>
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
 
-    public PromoteUserEndpoint(UserManager<ApplicationUser> userManager)
+    public PromoteUserEndpoint(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
     }
 
     public override void Configure()
@@ -23,7 +25,12 @@ public class PromoteUserEndpoint : Endpoint<PromoteUserRequest>
 
     public override async Task HandleAsync(PromoteUserRequest req, CancellationToken ct)
     {
-        Console.WriteLine($"Promote request for {req.UserEmail} to role {req.NewRole}");
+        if (!await _roleManager.RoleExistsAsync(req.NewRole))
+        {
+            await SendAsync(new { Message = "Role does not exist" }, StatusCodes.Status400BadRequest);
+            return;
+        }
+        
         var user = await _userManager.FindByEmailAsync(req.UserEmail);
         
         if (user != null)

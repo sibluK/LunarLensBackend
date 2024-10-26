@@ -6,6 +6,4 @@ public class ContentSection
     public string Text { get; set; } 
     public byte[]? Image { get; set; } 
     
-    public int ContentBaseId { get; set; } // Foreign key to ContentBase
-    public ContentBase ContentBase { get; set; } // Navigation property
 }
