@@ -5,7 +5,7 @@
 namespace LunarLensBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class AddUsersData : Migration
+    public partial class initial2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

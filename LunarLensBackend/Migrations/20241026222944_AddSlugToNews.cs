@@ -5,7 +5,7 @@
 namespace LunarLensBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateToApplicationUser2 : Migration
+    public partial class AddSlugToNews : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

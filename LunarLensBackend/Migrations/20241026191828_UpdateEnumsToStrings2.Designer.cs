@@ -3,6 +3,7 @@ using System;
 using LunarLensBackend.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LunarLensBackend.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20241026191828_UpdateEnumsToStrings2")]
+    partial class UpdateEnumsToStrings2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -134,6 +137,7 @@ namespace LunarLensBackend.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Summary")
@@ -171,9 +175,11 @@ namespace LunarLensBackend.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Location")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Organizer")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("PublishedDate")
@@ -182,10 +188,11 @@ namespace LunarLensBackend.Migrations
                     b.Property<string>("Slug")
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("StartDate")
+                    b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Summary")
@@ -229,9 +236,11 @@ namespace LunarLensBackend.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Source")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Summary")
