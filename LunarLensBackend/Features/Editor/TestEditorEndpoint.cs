@@ -1,4 +1,5 @@
 using FastEndpoints;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LunarLensBackend.Features.Editor;
 

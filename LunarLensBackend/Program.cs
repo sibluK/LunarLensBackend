@@ -1,6 +1,7 @@
 using System.Security.Authentication.ExtendedProtection;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 using DotNetEnv;
 using FastEndpoints;
 using FastEndpoints.Swagger;
@@ -85,33 +86,6 @@ bld.Services.Configure<JwtBearerOptions>("JwtBearer", options =>
     };
 });
 
-    /*.AddOpenIdConnect("Microsoft", options =>
-    {
-        options.Authority = $"https://login.microsoftonline.com/{bld.Configuration.GetSection("AzureAd:TenantId").Value}/v2.0";
-        options.ClientId = bld.Configuration.GetSection("AzureAd:ClientId").Value;
-        options.ClientSecret = bld.Configuration.GetSection("AzureAd:ClientSecret").Value;
-        options.ResponseType = "code"; 
-        options.SaveTokens = true;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidIssuer = $"https://login.microsoftonline.com/{bld.Configuration.GetSection("AzureAd:TenantId").Value}/v2.0",
-            ValidAudience = bld.Configuration.GetSection("AzureAd:ClientId").Value, 
-            /*RoleClaimType = ClaimTypes.Role,#1#
-        };
-        options.Events = new OpenIdConnectEvents
-        {
-            OnRedirectToIdentityProvider = context =>
-            {
-                context.Response.StatusCode = 401;
-                context.HandleResponse();
-                return Task.CompletedTask;
-            }
-        };
-    });*/
-
 bld.Services.AddFastEndpoints().SwaggerDocument().AddResponseCaching();
 
 bld.Services.AddCors(options =>
@@ -152,10 +126,22 @@ bld.Services.AddAuthorizationBuilder()
         policy.RequireAuthenticatedUser();
         policy.RequireRole("BasicUser");
         policy.AddAuthenticationSchemes("JwtBearer");
+    })
+    .AddPolicy("WriterOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Writer");
+        policy.AddAuthenticationSchemes("JwtBearer");
     });
 
 
 bld.Services.AddScoped<TokenGeneration>();
+
+bld.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 var app = bld.Build();
 

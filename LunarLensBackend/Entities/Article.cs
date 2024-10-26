@@ -1,9 +1,13 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using LunarLensBackend.Entities.Enums;
+using LunarLensBackend.Entities.Shared;
 
 namespace LunarLensBackend.Entities;
 
-public class Article
+public class Article : ContentBase
 {
+    public Article()
+    {
+        Type = ContentType.Article;
+    }
     
 }

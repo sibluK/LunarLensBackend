@@ -10,7 +10,7 @@ public static class RoleSeeder
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        var roles = new[] { "Admin", "Editor", "BasicUser" };
+        var roles = new[] { "Admin", "Editor", "Writer", "BasicUser" };
         
         foreach (var role in roles)
         {

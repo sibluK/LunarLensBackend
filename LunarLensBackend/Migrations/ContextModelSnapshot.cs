@@ -22,6 +22,21 @@ namespace LunarLensBackend.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ApplicationUserContentBase", b =>
+                {
+                    b.Property<string>("WritersId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("WrittenContentsId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("WritersId", "WrittenContentsId");
+
+                    b.HasIndex("WrittenContentsId");
+
+                    b.ToTable("ApplicationUserContentBase");
+                });
+
             modelBuilder.Entity("LunarLensBackend.Database.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -40,6 +55,9 @@ namespace LunarLensBackend.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<byte[]>("Image")
+                        .HasColumnType("bytea");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -122,6 +140,144 @@ namespace LunarLensBackend.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.Shared.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ContentBaseId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContentBaseId");
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.Shared.Comment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ContentBaseId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Dislikes")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Likes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContentBaseId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.Shared.ContentBase", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("Dislikes")
+                        .HasColumnType("integer");
+
+                    b.Property<byte[]>("Image")
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("Likes")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("PublishedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Slug")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Summary")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Views")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ContentBases", (string)null);
+
+                    b.UseTptMappingStrategy();
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.Shared.ContentSection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ContentBaseId")
+                        .HasColumnType("integer");
+
+                    b.Property<byte[]>("Image")
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContentBaseId");
+
+                    b.ToTable("ContentSection");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -256,6 +412,57 @@ namespace LunarLensBackend.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("LunarLensBackend.Entities.Article", b =>
+                {
+                    b.HasBaseType("LunarLensBackend.Entities.Shared.ContentBase");
+
+                    b.ToTable("Articles", (string)null);
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.Event", b =>
+                {
+                    b.HasBaseType("LunarLensBackend.Entities.Shared.ContentBase");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Organizer")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.ToTable("Events", (string)null);
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.News", b =>
+                {
+                    b.HasBaseType("LunarLensBackend.Entities.Shared.ContentBase");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.ToTable("News", (string)null);
+                });
+
+            modelBuilder.Entity("ApplicationUserContentBase", b =>
+                {
+                    b.HasOne("LunarLensBackend.Database.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("WritersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LunarLensBackend.Entities.Shared.ContentBase", null)
+                        .WithMany()
+                        .HasForeignKey("WrittenContentsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("LunarLensBackend.Entities.RefreshToken", b =>
                 {
                     b.HasOne("LunarLensBackend.Database.ApplicationUser", null)
@@ -263,6 +470,43 @@ namespace LunarLensBackend.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.Shared.Category", b =>
+                {
+                    b.HasOne("LunarLensBackend.Entities.Shared.ContentBase", null)
+                        .WithMany("Categories")
+                        .HasForeignKey("ContentBaseId");
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.Shared.Comment", b =>
+                {
+                    b.HasOne("LunarLensBackend.Entities.Shared.ContentBase", "Content")
+                        .WithMany("Comments")
+                        .HasForeignKey("ContentBaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LunarLensBackend.Database.ApplicationUser", "User")
+                        .WithMany("Comments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Content");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.Shared.ContentSection", b =>
+                {
+                    b.HasOne("LunarLensBackend.Entities.Shared.ContentBase", "ContentBase")
+                        .WithMany("ContentSections")
+                        .HasForeignKey("ContentBaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ContentBase");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -314,6 +558,47 @@ namespace LunarLensBackend.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.Article", b =>
+                {
+                    b.HasOne("LunarLensBackend.Entities.Shared.ContentBase", null)
+                        .WithOne()
+                        .HasForeignKey("LunarLensBackend.Entities.Article", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.Event", b =>
+                {
+                    b.HasOne("LunarLensBackend.Entities.Shared.ContentBase", null)
+                        .WithOne()
+                        .HasForeignKey("LunarLensBackend.Entities.Event", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.News", b =>
+                {
+                    b.HasOne("LunarLensBackend.Entities.Shared.ContentBase", null)
+                        .WithOne()
+                        .HasForeignKey("LunarLensBackend.Entities.News", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Database.ApplicationUser", b =>
+                {
+                    b.Navigation("Comments");
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Entities.Shared.ContentBase", b =>
+                {
+                    b.Navigation("Categories");
+
+                    b.Navigation("Comments");
+
+                    b.Navigation("ContentSections");
                 });
 #pragma warning restore 612, 618
         }
