@@ -1,32 +1,31 @@
 using System.Text.RegularExpressions;
 using LunarLensBackend.Database;
 using LunarLensBackend.Entities.Enums;
-using LunarLensBackend.Entities.Shared;
 
 namespace LunarLensBackend.Entities;
 
-public class Article : ContentBase
+public class Article
 {
     public int Id { get; set; }
+    private string _title;
     public string? Title
     {
-        get => Title;
+        get => _title;
         set
         {
-            Title = value;
-            Slug = GenerateSlug(value);
+            _title = value;
+            Slug = value != null ? GenerateSlug(value) : null;
         }
     }
     public string? Slug { get; private set; }
     public string? Summary { get; set; }
-    public int? Views { get; set; }
-    public int? Likes { get; set; }
-    public int? Dislikes { get; set; }
+    public int? Views { get; set; } = 0;
+    public int? Likes { get; set; } = 0;
+    public int? Dislikes { get; set; } = 0;
     public byte[]? Image { get; set; }
     public DateTime? PublishedDate { get; set; }
-    public DateTime? LastUpdatedDate { get; set; }
+    public DateTime? LastUpdatedDate { get; set; } = DateTime.UtcNow;
     public ContentStatus? Status { get; set; } = ContentStatus.Drafted;
-    
     public ICollection<Comment>? Comments { get; set; } = new List<Comment>();
     public ICollection<ContentSection>? ContentSections { get; set; } = new List<ContentSection>();
     public ICollection<ApplicationUser>? Writers { get; set; } = new List<ApplicationUser>();

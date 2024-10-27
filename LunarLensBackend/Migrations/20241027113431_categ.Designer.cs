@@ -3,6 +3,7 @@ using System;
 using LunarLensBackend.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LunarLensBackend.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20241027113431_categ")]
+    partial class categ
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,51 +24,6 @@ namespace LunarLensBackend.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("ApplicationUserArticle", b =>
-                {
-                    b.Property<int>("ArticlesId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("WritersId")
-                        .HasColumnType("text");
-
-                    b.HasKey("ArticlesId", "WritersId");
-
-                    b.HasIndex("WritersId");
-
-                    b.ToTable("ApplicationUserArticle");
-                });
-
-            modelBuilder.Entity("ApplicationUserEvent", b =>
-                {
-                    b.Property<int>("EventsId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("WritersId")
-                        .HasColumnType("text");
-
-                    b.HasKey("EventsId", "WritersId");
-
-                    b.HasIndex("WritersId");
-
-                    b.ToTable("ApplicationUserEvent");
-                });
-
-            modelBuilder.Entity("ApplicationUserNews", b =>
-                {
-                    b.Property<int>("NewsId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("WritersId")
-                        .HasColumnType("text");
-
-                    b.HasKey("NewsId", "WritersId");
-
-                    b.HasIndex("WritersId");
-
-                    b.ToTable("ApplicationUserNews");
-                });
 
             modelBuilder.Entity("ArticleCategory", b =>
                 {
@@ -120,6 +78,9 @@ namespace LunarLensBackend.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("ArticleId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -130,6 +91,9 @@ namespace LunarLensBackend.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<int?>("EventId")
+                        .HasColumnType("integer");
 
                     b.Property<byte[]>("Image")
                         .HasColumnType("bytea");
@@ -142,6 +106,9 @@ namespace LunarLensBackend.Migrations
 
                     b.Property<string>("MicrosoftId")
                         .HasColumnType("text");
+
+                    b.Property<int?>("NewsId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -171,6 +138,12 @@ namespace LunarLensBackend.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("NewsId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -275,9 +248,6 @@ namespace LunarLensBackend.Migrations
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -587,51 +557,6 @@ namespace LunarLensBackend.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ApplicationUserArticle", b =>
-                {
-                    b.HasOne("LunarLensBackend.Entities.Article", null)
-                        .WithMany()
-                        .HasForeignKey("ArticlesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LunarLensBackend.Database.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("WritersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ApplicationUserEvent", b =>
-                {
-                    b.HasOne("LunarLensBackend.Entities.Event", null)
-                        .WithMany()
-                        .HasForeignKey("EventsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LunarLensBackend.Database.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("WritersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ApplicationUserNews", b =>
-                {
-                    b.HasOne("LunarLensBackend.Entities.News", null)
-                        .WithMany()
-                        .HasForeignKey("NewsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LunarLensBackend.Database.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("WritersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("ArticleCategory", b =>
                 {
                     b.HasOne("LunarLensBackend.Entities.Article", null)
@@ -675,6 +600,21 @@ namespace LunarLensBackend.Migrations
                         .HasForeignKey("NewsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LunarLensBackend.Database.ApplicationUser", b =>
+                {
+                    b.HasOne("LunarLensBackend.Entities.Article", null)
+                        .WithMany("Writers")
+                        .HasForeignKey("ArticleId");
+
+                    b.HasOne("LunarLensBackend.Entities.Event", null)
+                        .WithMany("Writers")
+                        .HasForeignKey("EventId");
+
+                    b.HasOne("LunarLensBackend.Entities.News", null)
+                        .WithMany("Writers")
+                        .HasForeignKey("NewsId");
                 });
 
             modelBuilder.Entity("LunarLensBackend.Entities.Comment", b =>
@@ -772,6 +712,8 @@ namespace LunarLensBackend.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("ContentSections");
+
+                    b.Navigation("Writers");
                 });
 
             modelBuilder.Entity("LunarLensBackend.Entities.Event", b =>
@@ -779,6 +721,8 @@ namespace LunarLensBackend.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("ContentSections");
+
+                    b.Navigation("Writers");
                 });
 
             modelBuilder.Entity("LunarLensBackend.Entities.News", b =>
@@ -786,6 +730,8 @@ namespace LunarLensBackend.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("ContentSections");
+
+                    b.Navigation("Writers");
                 });
 #pragma warning restore 612, 618
         }

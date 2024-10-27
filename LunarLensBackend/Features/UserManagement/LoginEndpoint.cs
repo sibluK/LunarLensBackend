@@ -1,6 +1,5 @@
 using FastEndpoints;
 using LunarLensBackend.Database;
-using LunarLensBackend.DTOs;
 using LunarLensBackend.Utility;
 using Microsoft.AspNetCore.Identity;
 
@@ -35,5 +34,25 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
         var refreshToken = await _tokenGeneration.GenerateRefreshTokenAsync(user); 
         
         return new LoginResponse(accessToken, refreshToken, DateTime.UtcNow.AddMinutes(15));
+    }
+}
+
+public class LoginRequest
+{
+    public required string Email { get; set; }
+    public required string Password { get; set; }
+}
+
+public class LoginResponse
+{
+    public string AccessToken { get; set; }  
+    public string RefreshToken { get; set; }
+    public DateTime Expires { get; set; }
+
+    public LoginResponse(string access, string refresh, DateTime expires)
+    {
+        AccessToken = access;
+        RefreshToken = refresh;
+        Expires = expires;
     }
 }

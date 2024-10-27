@@ -1,6 +1,5 @@
 using FastEndpoints;
 using LunarLensBackend.Database;
-using LunarLensBackend.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 
@@ -49,4 +48,11 @@ public class RegisterEndpoint : Endpoint<RegisterRequest, RegisterResponse>
         await SendAsync(errorResponse, 400);
         return null;
     }
+}
+
+public class RegisterResponse
+{
+    public Guid Id { get; set; }  
+    public string Email { get; set; } 
+    public List<string> Errors { get; set; }
 }

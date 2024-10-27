@@ -1,6 +1,5 @@
 using FastEndpoints;
 using LunarLensBackend.Database;
-using LunarLensBackend.DTOs;
 using LunarLensBackend.Utility;
 using Microsoft.AspNetCore.Identity;
 
@@ -33,5 +32,22 @@ public class TokenRefreshEndpoint : Endpoint<RefreshRequest, RefreshResponse>
         {
             ThrowError(ex.Message, StatusCodes.Status401Unauthorized);
         }
+    }
+}
+
+public class RefreshRequest
+{
+    public string refreshToken { get; set; }
+}
+
+public class RefreshResponse
+{
+    public string AccessToken { get; set; }
+    public DateTime ExpiresIn { get; set; }
+
+    public RefreshResponse(string accessToken, DateTime expiresIn)
+    {
+        AccessToken = accessToken;
+        ExpiresIn = expiresIn;
     }
 }

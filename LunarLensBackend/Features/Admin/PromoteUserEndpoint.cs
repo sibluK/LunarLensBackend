@@ -1,7 +1,5 @@
 using FastEndpoints;
 using LunarLensBackend.Database;
-using LunarLensBackend.DTOs;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
 namespace LunarLensBackend.Features.Admin;
@@ -53,4 +51,10 @@ public class PromoteUserEndpoint : Endpoint<PromoteUserRequest>
             await SendAsync(new { Error = "User not found" }, 400);
         }
     }
+}
+
+public class PromoteUserRequest
+{
+    public string UserEmail { get; set; }
+    public string NewRole { get; set; }
 }

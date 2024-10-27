@@ -1,11 +1,10 @@
 using System.Text.RegularExpressions;
 using LunarLensBackend.Database;
 using LunarLensBackend.Entities.Enums;
-using LunarLensBackend.Entities.Shared;
 
 namespace LunarLensBackend.Entities;
 
-public class News : ContentBase
+public class News
 {
     
     public int Id { get; set; }
@@ -29,7 +28,6 @@ public class News : ContentBase
     public DateTime? LastUpdatedDate { get; set; }
     public ContentStatus? Status { get; set; } = ContentStatus.Drafted;
     public string? Source { get; set; }
-    
     public ICollection<Comment>? Comments { get; set; } = new List<Comment>();
     public ICollection<ContentSection>? ContentSections { get; set; } = new List<ContentSection>();
     public ICollection<ApplicationUser>? Writers { get; set; } = new List<ApplicationUser>();

@@ -29,4 +29,8 @@
         <PackageReference Include="Microsoft.Identity.Web" Version="3.2.0" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Features\Engagement\" />
+    </ItemGroup>
 </Project>

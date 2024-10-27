@@ -1,10 +1,9 @@
+using System.Text.Json.Serialization;
 using FastEndpoints;
 using LunarLensBackend.Database;
 using LunarLensBackend.DTOs;
-using LunarLensBackend.Entities;
 using LunarLensBackend.Entities.Enums;
-using LunarLensBackend.Entities.Shared;
-using Microsoft.EntityFrameworkCore;
+using LunarLensBackend.Utility;
 
 namespace LunarLensBackend.Features.Editor;
 
@@ -45,19 +44,27 @@ public class ChangeContentStatusEndpoint : Endpoint<ChangeContentStatusRequest>
                     }
 
                     newsStory.Status = req.Status;
+                    if (req.Status == ContentStatus.Published)
+                    {
+                        newsStory.PublishedDate = DateTime.UtcNow;
+                    }
                     await _context.SaveChangesAsync();
                     break;
                 
                 case ContentType.Article:
-                    var articleStory = _context.Articles.FirstOrDefault(article => article.Id == req.ContentId);
+                    var article = _context.Articles.FirstOrDefault(article => article.Id == req.ContentId);
                     
-                    if (articleStory == null)
+                    if (article == null)
                     {
                         await SendAsync(new { Message = "Article not found. Check id." }, StatusCodes.Status400BadRequest);
                         return;
                     }
 
-                    articleStory.Status = req.Status;
+                    article.Status = req.Status;
+                    if (req.Status == ContentStatus.Published)
+                    {
+                        article.PublishedDate = DateTime.UtcNow;
+                    }
                     await _context.SaveChangesAsync();
                     break;
 
@@ -83,5 +90,17 @@ public class ChangeContentStatusEndpoint : Endpoint<ChangeContentStatusRequest>
             await SendAsync(new { Message = "An error occurred while changing the content status." }, StatusCodes.Status500InternalServerError);
         }
     }
+}
 
+public class ChangeContentStatusRequest
+{
+    public required int ContentId { get; set; }
+    
+    [JsonConverter(typeof(SafeEnumConverter<ContentType>))]
+    [EnumValidation(typeof(ContentType))]
+    public required ContentType Type { get; set; }
+
+    [JsonConverter(typeof(SafeEnumConverter<ContentStatus>))]
+    [EnumValidation(typeof(ContentStatus))]
+    public required ContentStatus Status { get; set; }
 }
