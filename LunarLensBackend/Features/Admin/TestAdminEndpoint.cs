@@ -19,7 +19,7 @@ public class TestAdminEndpoint : Endpoint<EmptyRequest>
 
     public override async Task HandleAsync(EmptyRequest req, CancellationToken ct)
     {
-        Console.WriteLine("Admin endpoint accessed successfully!");
+        Console.WriteLine("Admin endpoint accessed successfully!"); 
         await SendOkAsync("Access granted at " + DateTime.UtcNow);
     }
 }
