@@ -143,6 +143,37 @@ bld.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
+bld.Services
+    .SwaggerDocument(o =>
+    {
+        o.DocumentSettings = s =>
+        {
+            s.DocumentName = "Initial Release";
+            s.Title = "LunarLens";
+            s.Version = "v0";
+        };
+    })
+    .SwaggerDocument(o =>
+    {
+        o.MaxEndpointVersion = 1;
+        o.DocumentSettings = s =>
+        {
+            s.DocumentName = "Release 1.0";
+            s.Title = "LunarLens";
+            s.Version = "v1.0";
+        };
+    })
+    .SwaggerDocument(o =>
+    {
+        o.MaxEndpointVersion = 2;
+        o.DocumentSettings = s =>
+        {
+            s.DocumentName = "Release 2.0";
+            s.Title = "LunarLens";
+            s.Version = "v2.0";
+        };
+    });
+
 var app = bld.Build();
 
 await RoleSeeder.SeedRolesAndAdminUserAsync(app.Services);
