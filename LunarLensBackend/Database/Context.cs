@@ -31,6 +31,7 @@ public class Context : IdentityDbContext<ApplicationUser, IdentityRole, string>
             .WithMany()
             .HasForeignKey(rt => rt.UserId);
         
+        // Configure Article entity
         modelBuilder.Entity<News>()
             .Property(n => n.Status)
             .HasConversion(
@@ -51,22 +52,23 @@ public class Context : IdentityDbContext<ApplicationUser, IdentityRole, string>
                 v => v.ToString(),
                 v => (ContentStatus)Enum.Parse(typeof(ContentStatus), v));
         
+        // Configure many-to-many relationship for Articles and Categories
         modelBuilder.Entity<Article>()
             .HasMany(a => a.Categories)
-            .WithMany(c => c.Articles) // You will need to add this navigation property in Category
-            .UsingEntity(j => j.ToTable("ArticleCategories")); // Custom junction table name
+            .WithMany(c => c.Articles)
+            .UsingEntity(j => j.ToTable("ArticleCategories"));
 
         // Configure many-to-many relationship for Events and Categories
         modelBuilder.Entity<Event>()
             .HasMany(e => e.Categories)
-            .WithMany(c => c.Events) // You will need to add this navigation property in Category
-            .UsingEntity(j => j.ToTable("EventCategories")); // Custom junction table name
+            .WithMany(c => c.Events)
+            .UsingEntity(j => j.ToTable("EventCategories"));
 
         // Configure many-to-many relationship for News and Categories
         modelBuilder.Entity<News>()
             .HasMany(n => n.Categories)
-            .WithMany(c => c.News) // You will need to add this navigation property in Category
-            .UsingEntity(j => j.ToTable("NewsCategories")); // Custom junction table name
+            .WithMany(c => c.News)
+            .UsingEntity(j => j.ToTable("NewsCategories"));
         
         modelBuilder.Entity<ApplicationUser>()
             .HasMany(u => u.Articles)

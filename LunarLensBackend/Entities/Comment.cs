@@ -9,4 +9,14 @@ public class Comment
     public DateTime Date { get; set; } = DateTime.UtcNow;
     public bool IsEdited { get; set; } = false;
     public string UserId { get; set; }
+    
+    // Foreign keys for relationships with Event, News, and Article
+    public int? EventId { get; set; }
+    public int? NewsId { get; set; }
+    public int? ArticleId { get; set; }
+
+    // Navigation properties for EF relationships
+    public Event Event { get; set; }
+    public News News { get; set; }
+    public Article Article { get; set; }
 }

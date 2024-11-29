@@ -2,10 +2,12 @@ using System.Security.Claims;
 using System.Text.Json.Serialization;
 using FastEndpoints;
 using LunarLensBackend.Database;
+using LunarLensBackend.DTOs;
 using LunarLensBackend.Entities;
 using LunarLensBackend.Entities.Enums;
 using LunarLensBackend.Utility;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace LunarLensBackend.Features.Interaction;
 
@@ -94,6 +96,102 @@ public class CreateCommentEndpoint : Endpoint<CreateCommentRequest>
         }
     }
 }
+
+public class GetContentCommentsEndpoint : Endpoint<GetContentCommentsRequest>
+{
+    private readonly Context _context;
+
+    public GetContentCommentsEndpoint(Context context)
+    {
+        _context = context;
+    }
+    
+    public override void Configure()
+    {
+        Post("/comment/content/all");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(GetContentCommentsRequest req, CancellationToken ct)
+    {
+        try
+        {
+            List<Comment> comments;
+            List<CommentDTO> commentModel = new List<CommentDTO>();
+            switch (req.Type)
+            {
+                case ContentType.News:
+                    comments = await _context.Comments.Where(c => c.NewsId == req.ContentId).ToListAsync(ct);
+                    
+                    comments.ForEach(c =>
+                    {
+                        CommentDTO dto = new CommentDTO();
+                        dto.Id = c.Id;
+                        dto.Text = c.Text;
+                        dto.Likes = c.Likes;
+                        dto.Dislikes = c.Dislikes;
+                        dto.Date = c.Date;
+                        dto.IsEdited = c.IsEdited;
+                        dto.UserId = c.UserId;
+                        dto.ContentId = c.NewsId;
+                        
+                        commentModel.Add(dto);
+                    });
+                    break;
+                
+                case ContentType.Article:
+                    comments = await _context.Comments.Where(c => c.ArticleId == req.ContentId).ToListAsync(ct);
+
+                    comments.ForEach(c =>
+                    {
+                        CommentDTO dto = new CommentDTO();
+                        dto.Id = c.Id;
+                        dto.Text = c.Text;
+                        dto.Likes = c.Likes;
+                        dto.Dislikes = c.Dislikes;
+                        dto.Date = c.Date;
+                        dto.IsEdited = c.IsEdited;
+                        dto.UserId = c.UserId;
+                        dto.ContentId = c.ArticleId;
+                        
+                        commentModel.Add(dto);
+                    });
+                    break;
+                
+                case ContentType.Event:
+                    comments = await _context.Comments.Where(c => c.EventId == req.ContentId).ToListAsync(ct);
+
+                    comments.ForEach(c =>
+                    {
+                        CommentDTO dto = new CommentDTO();
+                        dto.Id = c.Id;
+                        dto.Text = c.Text;
+                        dto.Likes = c.Likes;
+                        dto.Dislikes = c.Dislikes;
+                        dto.Date = c.Date;
+                        dto.IsEdited = c.IsEdited;
+                        dto.UserId = c.UserId;
+                        dto.ContentId = c.EventId;
+                        
+                        commentModel.Add(dto);
+                    });
+                    
+                    break;
+                default:
+                    await SendAsync(new { Message = "Invalid content type." }, StatusCodes.Status400BadRequest, ct);
+                    return;
+            }
+            
+            await SendOkAsync(commentModel, ct);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await SendAsync(new { Message = "An error occurred while getting content comments." }, StatusCodes.Status500InternalServerError, ct);
+        }
+    }
+}
+
 public class EditCommentEndpoint : Endpoint<EditCommentRequest>
 {
     private readonly Context _context;
@@ -203,5 +301,13 @@ public class EditCommentRequest
 {
     public int Id { get; set; }
     public string Text { get; set; }
+}
+
+public class GetContentCommentsRequest
+{
+    public int ContentId { get; set; }
+    [JsonConverter(typeof(SafeEnumConverter<ContentType>))]
+    [EnumValidation(typeof(ContentType))]
+    public ContentType Type { get; set; }
 }
 
