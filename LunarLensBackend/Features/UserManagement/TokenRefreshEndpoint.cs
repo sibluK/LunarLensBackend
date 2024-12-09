@@ -26,7 +26,7 @@ public class TokenRefreshEndpoint : Endpoint<RefreshRequest, RefreshResponse>
         {
             var newAccessToken = await _tokenGeneration.HandleRefreshTokenAsync(req.refreshToken, ct);
             
-            await SendAsync(new RefreshResponse(newAccessToken, DateTime.UtcNow));
+            await SendAsync(new RefreshResponse(newAccessToken, DateTime.UtcNow.AddMinutes(15)));
         }
         catch (UnauthorizedAccessException ex)
         {
