@@ -16,5 +16,25 @@ public class ApplicationUser : IdentityUser
     {
         return Image != null ? $"data:image/png;base64,{Convert.ToBase64String(Image)}" : null;
     }
+
+    public void addArticle(Article article)
+    {
+        Articles.Add(article);
+    }
+
+    public void addNews(News news)
+    {
+        News.Add(news);
+    }
+
+    public void removeArticle(Article article)
+    {
+        Articles.Remove(article);
+    }
+
+    public void removeNews(News news)
+    {
+        News.Remove(news);
+    }
 }
 

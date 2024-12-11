@@ -35,6 +35,31 @@ public class Event
     public ICollection<ApplicationUser>? Writers { get; set; } = new List<ApplicationUser>();
     public ICollection<Category>? Categories { get; set; } = new List<Category>();
 
+    public Event(
+        string title,
+        string? summary = null,
+        byte[]? image = null,
+        DateTime? startDate = null,
+        string location = null,
+        string organizer = null,
+        ContentStatus? status = ContentStatus.Drafted
+    )
+    {
+        Title = title; 
+        Summary = summary;
+        Image = image;
+        LastUpdatedDate = DateTime.UtcNow; 
+        StartDate = startDate;
+        Location = location;
+        Organizer = organizer;
+        Status = status;
+    }
+
+    public Event()
+    {
+        
+    }
+    
     private string GenerateSlug(string title)
     {
         if (string.IsNullOrWhiteSpace(title)) return string.Empty;

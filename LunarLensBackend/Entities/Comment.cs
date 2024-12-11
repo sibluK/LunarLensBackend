@@ -19,4 +19,20 @@ public class Comment
     public Event Event { get; set; }
     public News News { get; set; }
     public Article Article { get; set; }
+
+
+    public Comment(string text, string userId, int? articleId, int? eventId, int? newsId)
+    {
+        Text = text;
+        UserId = userId;
+        EventId = eventId;
+        NewsId = newsId;
+        ArticleId = articleId;
+    }
+
+    public Comment()
+    {
+        
+    }
+    
 }

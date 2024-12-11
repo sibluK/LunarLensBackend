@@ -5,7 +5,6 @@ using System.Text;
 using LunarLensBackend.Database;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using FastEndpoints;
 using LunarLensBackend.Entities;
 using Microsoft.EntityFrameworkCore;
 

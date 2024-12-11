@@ -8,14 +8,11 @@ public class ArticleTests
     [Fact]
     public void SettingTitle_ShouldGenerateSlug()
     {
-        // Arrange
         var article = new Article();
         var title = "An Example Title!";
-
-        // Act
+        
         article.Title = title;
-
-        // Assert
+        
         Assert.Equal("an-example-title", article.Slug);
     }
 
@@ -29,20 +26,16 @@ public class ArticleTests
 
         var article = new Article();
 
-
         article.Title = inputTitle;
-
-
+        
         Assert.Equal(expectedSlug, article.Slug);
     }
 
     [Fact]
     public void DefaultValues_ShouldBeSetCorrectly()
     {
-        // Arrange & Act
         var article = new Article();
-
-        // Assert
+        
         Assert.Equal(0, article.Views);
         Assert.Equal(0, article.Likes);
         Assert.Equal(0, article.Dislikes);
@@ -56,4 +49,24 @@ public class ArticleTests
         Assert.Empty(article.Categories);
         Assert.Equal(ContentStatus.Drafted, article.Status);
     }
+
+    [Theory]
+    [InlineData("Simple Title", "content-summary")]
+    public void Constructor_ShouldTakeInParameters(string title, string summary)
+    {
+        var article = new Article(title, summary);
+
+        Assert.NotNull(article.Title);
+        Assert.NotNull(article.Summary);
+    }
+
+    [Theory]
+    [InlineData("Simple Title", null)]
+    [InlineData(null, "Some summary")]
+    [InlineData(null, null)]
+    public void Constructor_ShouldThrowExceptionIfSomeParameterIsNull(string title, string summary)
+    {
+        Assert.Throws<ArgumentNullException>(() => new Article(title, summary));
+    }
+    
 }

@@ -33,6 +33,30 @@ public class News
     public ICollection<ApplicationUser>? Writers { get; set; } = new List<ApplicationUser>();
     public ICollection<Category>? Categories { get; set; } = new List<Category>();
 
+    public News(
+        string title,
+        string? summary = null,
+        byte[]? image = null,
+        DateTime? publishedDate = null,
+        string? source = null,
+        ContentStatus? status = ContentStatus.Drafted
+    )
+    {
+        Title = title; 
+        Summary = summary;
+        Image = image;
+        PublishedDate = publishedDate;
+        LastUpdatedDate = DateTime.UtcNow; 
+        Source = source;
+        Status = status;
+    }
+
+    public News()
+    {
+        
+    }
+
+
     private string GenerateSlug(string title)
     {
         if (string.IsNullOrWhiteSpace(title)) return string.Empty;

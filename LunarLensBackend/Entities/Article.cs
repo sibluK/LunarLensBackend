@@ -31,6 +31,17 @@ public class Article
     public ICollection<ApplicationUser>? Writers { get; set; } = new List<ApplicationUser>();
     public ICollection<Category>? Categories { get; set; } = new List<Category>();
 
+    public Article(string title, string summary)
+    {
+        Title = title ?? throw new ArgumentNullException(nameof(title));
+        Summary = summary ?? throw new ArgumentNullException(nameof(summary));
+    }
+    
+    public Article()
+    {
+        
+    }
+    
     private string GenerateSlug(string title)
     {
         if (string.IsNullOrWhiteSpace(title)) return string.Empty;
