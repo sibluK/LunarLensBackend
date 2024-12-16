@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LunarLensBackend.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6ebffed02e3afe04d9bfad76abae705c7c8e2c7e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8b42909a076781ae4bbe33579c1687c03582dd57")]
 [assembly: System.Reflection.AssemblyProductAttribute("LunarLensBackend.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LunarLensBackend.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

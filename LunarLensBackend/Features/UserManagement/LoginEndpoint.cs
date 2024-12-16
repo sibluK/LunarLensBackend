@@ -35,7 +35,7 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
         var roles = await _userManager.GetRolesAsync(user);
         var role = roles.FirstOrDefault();
         
-        return new LoginResponse(accessToken, refreshToken, DateTime.UtcNow.AddMinutes(15), role);
+        return new LoginResponse(accessToken, refreshToken, DateTime.UtcNow.AddSeconds(15), role);
     }
 }
 

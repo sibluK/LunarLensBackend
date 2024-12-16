@@ -55,7 +55,7 @@ public class TokenGeneration
             issuer: _configuration.GetSection("Jwt:Issuer").Value,
             audience: _configuration.GetSection("Jwt:Audience").Value,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(15),
+            expires: DateTime.UtcNow.AddSeconds(15),
             signingCredentials: creds
         );
         
